@@ -5,11 +5,31 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { CareerMatches } from "@/components/dashboard/CareerMatches";
 import { LearningResources } from "@/components/dashboard/LearningResources";
 import { CheckCircle, Target, TrendingUp, Flame } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuiz } from "@/contexts/QuizContext";
+import { useEffect } from "react";
 
 const Index = () => {
+  const { user } = useAuth();
+  const { quizStatus, profileCompleteness, calculateProfileCompleteness } = useQuiz();
+
+  useEffect(() => {
+    calculateProfileCompleteness();
+  }, []);
+
+  const getQuizStatusText = () => {
+    switch (quizStatus) {
+      case "completed":
+        return "Completed";
+      case "in-progress":
+        return "In Progress";
+      default:
+        return "Not Started";
+    }
+  };
   return (
     <DashboardLayout
-      title="Welcome Back, Adil"
+      title={`Welcome Back, ${user?.name || "User"}`}
       subtitle="Let's continue your career journey"
     >
       {/* Stats Cards */}
@@ -18,10 +38,10 @@ const Index = () => {
           icon={CheckCircle}
           iconBgColor="bg-primary/10"
           iconColor="text-primary"
-          value="3"
-          label="Assessments Completed"
-          subtext="↑ +2 this week"
-          subtextColor="text-success"
+          value={getQuizStatusText()}
+          label="Quiz Status"
+          subtext={quizStatus === "completed" ? "View recommendations" : quizStatus === "in-progress" ? "Continue quiz" : "Start now"}
+          subtextColor={quizStatus === "completed" ? "text-success" : "text-muted-foreground"}
         />
         <StatsCard
           icon={Target}
@@ -36,10 +56,10 @@ const Index = () => {
           icon={TrendingUp}
           iconBgColor="bg-success/10"
           iconColor="text-success"
-          value="78%"
+          value={`${profileCompleteness}%`}
           label="Profile Completion"
           hasProgress
-          progressValue={78}
+          progressValue={profileCompleteness}
         />
         <StatsCard
           icon={Flame}

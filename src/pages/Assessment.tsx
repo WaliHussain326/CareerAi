@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
+import { useQuiz } from "@/contexts/QuizContext";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   ArrowRight,
@@ -42,23 +48,112 @@ const domainOptions = [
   { id: "cloud", label: "Cloud & DevOps", color: "bg-chart-5" },
 ];
 
+const skillsList = [
+  "Python",
+  "JavaScript",
+  "React",
+  "Node.js",
+  "SQL",
+  "Git",
+  "Problem Solving",
+  "System Design",
+];
+
+interface SkillRating {
+  [key: string]: number;
+}
+
+interface QuizAnswers {
+  selectedInterests: string[];
+  selectedDomains: string[];
+  skillRatings: SkillRating;
+  workStyle: {
+    taskPreference?: string;
+    teamPreference?: string;
+    problemApproach?: string;
+  };
+  careerGoal?: string;
+  industryPreference?: string;
+}
+
 const Assessment = () => {
+  const navigate = useNavigate();
+  const { updateQuizStatus } = useQuiz();
   const [currentSection, setCurrentSection] = useState(0);
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<QuizAnswers>({
+    selectedInterests: [],
+    selectedDomains: [],
+    skillRatings: {},
+    workStyle: {},
+  });
+
+  useEffect(() => {
+    // Load saved progress
+    const savedState = localStorage.getItem("quizAnswers");
+    if (savedState) {
+      setAnswers(JSON.parse(savedState));
+    }
+    updateQuizStatus("in-progress");
+  }, []);
 
   const progress = ((currentSection + 1) / sections.length) * 100;
 
   const toggleInterest = (id: string) => {
-    setSelectedInterests((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+    setAnswers((prev) => ({
+      ...prev,
+      selectedInterests: prev.selectedInterests.includes(id)
+        ? prev.selectedInterests.filter((i) => i !== id)
+        : [...prev.selectedInterests, id],
+    }));
   };
 
   const toggleDomain = (id: string) => {
-    setSelectedDomains((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+    setAnswers((prev) => ({
+      ...prev,
+      selectedDomains: prev.selectedDomains.includes(id)
+        ? prev.selectedDomains.filter((i) => i !== id)
+        : [...prev.selectedDomains, id],
+    }));
+  };
+
+  const updateSkillRating = (skill: string, value: number) => {
+    setAnswers((prev) => ({
+      ...prev,
+      skillRatings: { ...prev.skillRatings, [skill]: value },
+    }));
+  };
+
+  const handleSaveAndExit = () => {
+    localStorage.setItem("quizAnswers", JSON.stringify(answers));
+    toast.success("Progress saved!");
+    navigate("/");
+  };
+
+  const handleNext = () => {
+    // Validation
+    if (currentSection === 1 && answers.selectedInterests.length === 0) {
+      toast.error("Please select at least one interest");
+      return;
+    }
+    if (currentSection === 1 && answers.selectedDomains.length === 0) {
+      toast.error("Please select at least one domain");
+      return;
+    }
+
+    if (currentSection < sections.length - 1) {
+      setCurrentSection((prev) => prev + 1);
+      localStorage.setItem("quizAnswers", JSON.stringify(answers));
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = () => {
+    // TODO: Send to backend
+    localStorage.setItem("quizAnswers", JSON.stringify(answers));
+    updateQuizStatus("completed");
+    toast.success("Assessment completed! Generating your recommendations...");
+    navigate("/recommendations");
   };
 
   return (
@@ -79,7 +174,7 @@ const Assessment = () => {
                 {sections[currentSection].title}
               </h2>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleSaveAndExit}>
               <Save className="mr-2 h-4 w-4" />
               Save & Exit
             </Button>
@@ -146,8 +241,8 @@ const Assessment = () => {
                         whileTap={{ scale: 0.98 }}
                         onClick={() => toggleInterest(option.id)}
                         className={cn(
-                          "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
-                          selectedInterests.includes(option.id)
+                          "relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+                          answers.selectedInterests.includes(option.id)
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/50"
                         )}
@@ -156,7 +251,7 @@ const Assessment = () => {
                         <span className="text-sm font-medium text-foreground text-center">
                           {option.label}
                         </span>
-                        {selectedInterests.includes(option.id) && (
+                        {answers.selectedInterests.includes(option.id) && (
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -186,16 +281,16 @@ const Assessment = () => {
                         whileTap={{ scale: 0.98 }}
                         onClick={() => toggleDomain(option.id)}
                         disabled={
-                          selectedDomains.length >= 3 &&
-                          !selectedDomains.includes(option.id)
+                          answers.selectedDomains.length >= 3 &&
+                          !answers.selectedDomains.includes(option.id)
                         }
                         className={cn(
                           "relative flex items-center gap-3 rounded-xl border-2 p-4 transition-all",
-                          selectedDomains.includes(option.id)
+                          answers.selectedDomains.includes(option.id)
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/50",
-                          selectedDomains.length >= 3 &&
-                            !selectedDomains.includes(option.id) &&
+                          answers.selectedDomains.length >= 3 &&
+                            !answers.selectedDomains.includes(option.id) &&
                             "opacity-50 cursor-not-allowed"
                         )}
                       >
@@ -203,7 +298,7 @@ const Assessment = () => {
                         <span className="text-sm font-medium text-foreground">
                           {option.label}
                         </span>
-                        {selectedDomains.includes(option.id) && (
+                        {answers.selectedDomains.includes(option.id) && (
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -274,25 +369,35 @@ const Assessment = () => {
                     Rate Your Skills
                   </h3>
                   <p className="mb-6 text-sm text-muted-foreground">
-                    Move the slider to indicate your proficiency level
+                    Move the slider to indicate your proficiency level (0 = Beginner, 100 = Expert)
                   </p>
                 </div>
 
-                {["Python", "JavaScript", "React", "Node.js", "SQL", "Git"].map((skill) => (
-                  <div key={skill} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-foreground">{skill}</span>
-                      <span className="text-xs text-muted-foreground">Intermediate</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.random() * 40 + 40}%` }}
-                        className="h-full rounded-full bg-primary"
+                {skillsList.map((skill) => {
+                  const value = answers.skillRatings[skill] || 50;
+                  const getLevel = (val: number) => {
+                    if (val < 25) return "Beginner";
+                    if (val < 50) return "Novice";
+                    if (val < 75) return "Intermediate";
+                    return "Advanced";
+                  };
+
+                  return (
+                    <div key={skill} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-foreground">{skill}</span>
+                        <span className="text-xs text-muted-foreground">{getLevel(value)}</span>
+                      </div>
+                      <Slider
+                        value={[value]}
+                        onValueChange={(vals) => updateSkillRating(skill, vals[0])}
+                        max={100}
+                        step={1}
+                        className="w-full"
                       />
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -307,34 +412,87 @@ const Assessment = () => {
                   </p>
                 </div>
 
-                {[
-                  {
-                    question: "You enjoy tasks that are:",
-                    options: ["Structured and planned", "Exploratory and experimental"],
-                  },
-                  {
-                    question: "You prefer working:",
-                    options: ["Alone", "In a team"],
-                  },
-                  {
-                    question: "When solving a problem, you:",
-                    options: ["Focus on logic first", "Focus on user experience first"],
-                  },
-                ].map((q, idx) => (
-                  <div key={idx} className="rounded-lg border border-border p-4">
-                    <p className="mb-3 font-medium text-foreground">{q.question}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {q.options.map((option) => (
-                        <button
-                          key={option}
-                          className="rounded-lg border-2 border-border px-4 py-2 text-sm font-medium text-foreground transition-all hover:border-primary hover:bg-primary/5"
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
+                <div className="space-y-6">
+                  <div className="rounded-lg border border-border p-4">
+                    <p className="mb-3 font-medium text-foreground">You enjoy tasks that are:</p>
+                    <RadioGroup
+                      value={answers.workStyle.taskPreference}
+                      onValueChange={(value) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          workStyle: { ...prev.workStyle, taskPreference: value },
+                        }))
+                      }
+                    >
+                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-accent/50">
+                        <RadioGroupItem value="structured" id="structured" />
+                        <Label htmlFor="structured" className="flex-1 cursor-pointer">
+                          Structured and planned
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-accent/50">
+                        <RadioGroupItem value="exploratory" id="exploratory" />
+                        <Label htmlFor="exploratory" className="flex-1 cursor-pointer">
+                          Exploratory and experimental
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
-                ))}
+
+                  <div className="rounded-lg border border-border p-4">
+                    <p className="mb-3 font-medium text-foreground">You prefer working:</p>
+                    <RadioGroup
+                      value={answers.workStyle.teamPreference}
+                      onValueChange={(value) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          workStyle: { ...prev.workStyle, teamPreference: value },
+                        }))
+                      }
+                    >
+                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-accent/50">
+                        <RadioGroupItem value="alone" id="alone" />
+                        <Label htmlFor="alone" className="flex-1 cursor-pointer">
+                          Alone
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-accent/50">
+                        <RadioGroupItem value="team" id="team" />
+                        <Label htmlFor="team" className="flex-1 cursor-pointer">
+                          In a team
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div className="rounded-lg border border-border p-4">
+                    <p className="mb-3 font-medium text-foreground">
+                      When solving a problem, you:
+                    </p>
+                    <RadioGroup
+                      value={answers.workStyle.problemApproach}
+                      onValueChange={(value) =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          workStyle: { ...prev.workStyle, problemApproach: value },
+                        }))
+                      }
+                    >
+                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-accent/50">
+                        <RadioGroupItem value="logic" id="logic" />
+                        <Label htmlFor="logic" className="flex-1 cursor-pointer">
+                          Focus on logic first
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 p-2 rounded hover:bg-accent/50">
+                        <RadioGroupItem value="ux" id="ux" />
+                        <Label htmlFor="ux" className="flex-1 cursor-pointer">
+                          Focus on user experience first
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -352,30 +510,49 @@ const Assessment = () => {
                 <div className="space-y-4">
                   <p className="text-sm font-medium text-foreground">Preferred career goal:</p>
                   <div className="grid grid-cols-2 gap-3">
-                    {["High-paying job", "Research-based career", "Startup / Entrepreneurship", "Work-life balance"].map(
-                      (goal) => (
-                        <button
-                          key={goal}
-                          className="rounded-lg border-2 border-border p-4 text-sm font-medium text-foreground transition-all hover:border-primary hover:bg-primary/5"
-                        >
-                          {goal}
-                        </button>
-                      )
-                    )}
+                    {[
+                      "High-paying job",
+                      "Research-based career",
+                      "Startup / Entrepreneurship",
+                      "Work-life balance",
+                    ].map((goal) => (
+                      <button
+                        key={goal}
+                        onClick={() => setAnswers((prev) => ({ ...prev, careerGoal: goal }))}
+                        className={cn(
+                          "rounded-lg border-2 p-4 text-sm font-medium transition-all",
+                          answers.careerGoal === goal
+                            ? "border-primary bg-primary/5 text-foreground"
+                            : "border-border text-foreground hover:border-primary/50 hover:bg-primary/5"
+                        )}
+                      >
+                        {goal}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <p className="text-sm font-medium text-foreground">Preferred industry:</p>
                   <div className="grid grid-cols-2 gap-3">
-                    {["Tech companies", "Freelancing", "Government", "Academia"].map((industry) => (
-                      <button
-                        key={industry}
-                        className="rounded-lg border-2 border-border p-4 text-sm font-medium text-foreground transition-all hover:border-primary hover:bg-primary/5"
-                      >
-                        {industry}
-                      </button>
-                    ))}
+                    {["Tech companies", "Freelancing", "Government", "Academia"].map(
+                      (industry) => (
+                        <button
+                          key={industry}
+                          onClick={() =>
+                            setAnswers((prev) => ({ ...prev, industryPreference: industry }))
+                          }
+                          className={cn(
+                            "rounded-lg border-2 p-4 text-sm font-medium transition-all",
+                            answers.industryPreference === industry
+                              ? "border-primary bg-primary/5 text-foreground"
+                              : "border-border text-foreground hover:border-primary/50 hover:bg-primary/5"
+                          )}
+                        >
+                          {industry}
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
@@ -395,9 +572,7 @@ const Assessment = () => {
           </Button>
 
           <Button
-            onClick={() =>
-              setCurrentSection((prev) => Math.min(sections.length - 1, prev + 1))
-            }
+            onClick={handleNext}
             className="gradient-cta text-primary-foreground hover:opacity-90"
           >
             {currentSection === sections.length - 1 ? (

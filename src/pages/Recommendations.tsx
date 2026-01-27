@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 import {
   Code2,
   Brain,
@@ -13,6 +15,8 @@ import {
   TrendingUp,
   BookOpen,
   Briefcase,
+  Award,
+  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,8 +29,10 @@ const careers = [
     match: 95,
     salary: "$85,000 - $150,000",
     growth: "+25%",
+    demand: "Very High",
     skills: ["React", "Node.js", "PostgreSQL", "AWS"],
     color: "from-primary to-primary/70",
+    whySuitsYou: "Your strong frontend and backend skills make you ideal for building complete web solutions. Your interest in both user experience and system design aligns perfectly with full-stack development.",
   },
   {
     id: 2,
@@ -36,8 +42,10 @@ const careers = [
     match: 88,
     salary: "$100,000 - $180,000",
     growth: "+40%",
+    demand: "Very High",
     skills: ["Python", "TensorFlow", "PyTorch", "MLOps"],
     color: "from-accent to-accent/70",
+    whySuitsYou: "Your analytical thinking and interest in data science position you well for AI/ML engineering. The combination of your programming skills and mathematical background is a perfect match.",
   },
   {
     id: 3,
@@ -47,8 +55,10 @@ const careers = [
     match: 82,
     salary: "$75,000 - $140,000",
     growth: "+22%",
+    demand: "High",
     skills: ["React Native", "Flutter", "Swift", "Kotlin"],
     color: "from-warning to-warning/70",
+    whySuitsYou: "Your passion for building user-facing applications and UI/UX interest makes you a great fit for mobile development. Your React knowledge transfers well to React Native.",
   },
   {
     id: 4,
@@ -58,8 +68,10 @@ const careers = [
     match: 78,
     salary: "$80,000 - $145,000",
     growth: "+35%",
+    demand: "Very High",
     skills: ["Network Security", "Penetration Testing", "SIEM", "Compliance"],
     color: "from-destructive to-destructive/70",
+    whySuitsYou: "Your attention to detail and interest in security, combined with your technical knowledge, makes you well-suited for protecting digital assets.",
   },
   {
     id: 5,
@@ -69,8 +81,10 @@ const careers = [
     match: 75,
     salary: "$120,000 - $200,000",
     growth: "+30%",
+    demand: "High",
     skills: ["AWS", "Azure", "Kubernetes", "Terraform"],
     color: "from-success to-success/70",
+    whySuitsYou: "Your system design skills and interest in scalability align well with cloud architecture. Your DevOps knowledge provides a strong foundation.",
   },
   {
     id: 6,
@@ -80,8 +94,10 @@ const careers = [
     match: 72,
     salary: "$90,000 - $160,000",
     growth: "+28%",
+    demand: "High",
     skills: ["Docker", "CI/CD", "Jenkins", "Monitoring"],
     color: "from-chart-5 to-chart-5/70",
+    whySuitsYou: "Your interest in automation and system optimization makes you a strong candidate for DevOps. Your full-stack knowledge helps bridge development and operations.",
   },
 ];
 
@@ -92,6 +108,7 @@ function getMatchColor(match: number) {
 }
 
 const Recommendations = () => {
+  const navigate = useNavigate();
   return (
     <DashboardLayout
       title="AI Recommendations"
@@ -193,6 +210,7 @@ const Recommendations = () => {
               {/* Action */}
               <Button
                 variant="outline"
+                onClick={() => navigate(`/career-paths/${career.id}`)}
                 className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
               >
                 View Details
