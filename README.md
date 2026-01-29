@@ -1,58 +1,171 @@
-# Welcome to your Lovable project
+# AI-Based Future Counselling Platform
 
-## Project info
+A full-stack application for AI-powered career counselling and personalized career recommendations.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Project Structure
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+dream-app-builder/
+├── frontend/          # React + TypeScript frontend
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
+├── backend/           # FastAPI Python backend
+│   ├── app/
+│   ├── alembic/
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── requirements.txt
+│
+└── README.md
 ```
 
-**Edit a file directly in GitHub**
+## Getting Started
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Backend Setup
 
-**Use GitHub Codespaces**
+See [backend/README.md](backend/README.md) for detailed backend setup instructions.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Quick start:
+```bash
+cd backend
+cp .env.example .env
+# Edit .env with your configuration
+docker-compose up --build
+```
 
-## What technologies are used for this project?
+Backend will be available at: http://localhost:8000
 
-This project is built with:
+### Frontend Setup
+
+```bash
+cd frontend
+bun install  # or npm install
+bun dev      # or npm run dev
+```
+
+Frontend will be available at: http://localhost:5173
+
+## Features
+
+### For Users
+- 🔐 Secure authentication with JWT
+- 📝 Guided onboarding process
+- 🎯 Interactive career assessment quiz
+- 🤖 AI-powered career recommendations using Google Gemini
+- 📊 Personalized skill gap analysis
+- 🗺️ Custom learning roadmaps
+- 📈 Progress tracking
+
+### For Admins
+- 👥 User management
+- ❓ Quiz question management
+- 📊 Platform analytics
+- 🎯 Career path oversight
+
+## Technology Stack
+
+### Frontend
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- Shadcn UI
+
+### Backend
+- Python 3.11
+- FastAPI
+- PostgreSQL
+- SQLAlchemy 2.0
+- Alembic
+- JWT Authentication
+- Google Gemini AI
+- Docker
+
+## API Documentation
+
+Once the backend is running, access the API documentation at:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Development Workflow
+
+1. Start backend:
+   ```bash
+   cd backend
+   docker-compose up
+   ```
+
+2. Start frontend:
+   ```bash
+   cd frontend
+   bun dev
+   ```
+
+3. Access:
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
+
+## Environment Variables
+
+### Backend (.env)
+```env
+DATABASE_URL=postgresql://postgres:090078601@db:5432/career_counselling
+SECRET_KEY=your-secret-key
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+### Frontend (.env)
+```env
+VITE_API_URL=http://localhost:8000/api/v1
+```
+
+## 📚 Documentation
+
+Comprehensive documentation is available:
+
+- **[DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)** - Complete documentation index
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Detailed setup instructions ⭐ START HERE
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - What's been built
+- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Deployment guide
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture diagrams
+- **[backend/README.md](backend/README.md)** - Backend documentation
+- **[backend/API_TESTING.md](backend/API_TESTING.md)** - API testing guide
+- **[frontend/README.md](frontend/README.md)** - Frontend documentation
+
+## 🚀 Quick Start
+
+### Option 1: Automated Setup (Recommended)
+
+**Windows:**
+```bash
+start.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+### Option 2: Manual Setup
+
+See [SETUP_GUIDE.md](SETUP_GUIDE.md) for complete step-by-step instructions.
+
+## 📊 Project Status
+
+- ✅ **Backend**: Complete and production-ready
+- ✅ **Database**: PostgreSQL schema implemented
+- ✅ **API**: 26 endpoints fully functional
+- ✅ **Authentication**: JWT-based auth working
+- ✅ **AI Integration**: Google Gemini connected
+- ✅ **Docker**: Full containerization ready
+- ✅ **Documentation**: Comprehensive guides included
+
+## License
 
 - Vite
 - TypeScript
