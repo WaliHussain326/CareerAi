@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
@@ -13,6 +13,9 @@ import {
   Brain,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { onboardingAPI } from "@/services/api";
+import { useEffect, useState } from "react";
 
 const mainNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -30,6 +33,35 @@ const resourceNavItems = [
 
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [fieldOfStudy, setFieldOfStudy] = useState<string>("");
+
+  useEffect(() => {
+    const loadOnboarding = async () => {
+      try {
+        const { data } = await onboardingAPI.get();
+        if (data?.field_of_study) {
+          setFieldOfStudy(data.field_of_study);
+        }
+      } catch (error) {
+        setFieldOfStudy("");
+      }
+    };
+    loadOnboarding();
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  const initials = (user?.full_name || user?.email || "U")
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-sidebar-border bg-sidebar">
@@ -39,7 +71,7 @@ export function Sidebar() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
             <Brain className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold text-foreground">CareerAI</span>
+          <span className="text-lg font-bold text-foreground">NextStepAi</span>
         </div>
 
         {/* Navigation */}
@@ -102,14 +134,19 @@ export function Sidebar() {
         <div className="border-t border-sidebar-border p-3">
           <div className="flex items-center gap-3 rounded-lg px-3 py-2">
             <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-semibold text-sm">
-              SA
+              {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">Syed Adil Ghani</p>
-              <p className="text-xs text-muted-foreground truncate">CS Graduate</p>
+              <p className="text-sm font-medium text-foreground truncate">{user?.full_name || "User"}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {fieldOfStudy || "Profile incomplete"}
+              </p>
             </div>
           </div>
-          <button className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
+          <button
+            onClick={handleLogout}
+            className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+          >
             <LogOut className="h-4 w-4" />
             Logout
           </button>

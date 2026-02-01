@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.onboarding import OnboardingData
+from app.models.career import CareerRecommendation
 from app.schemas.onboarding import OnboardingDataCreate, OnboardingDataUpdate
 
 class OnboardingService:
@@ -44,6 +45,13 @@ class OnboardingService:
             # Create new data
             db_data = OnboardingData(user_id=user_id, **onboarding_data.model_dump(exclude_unset=True))
             db.add(db_data)
+
+        # Clear existing recommendations whenever onboarding data changes
+        existing_recommendations = db.query(CareerRecommendation).filter(
+            CareerRecommendation.user_id == user_id
+        ).all()
+        for recommendation in existing_recommendations:
+            db.delete(recommendation)
         
         # Calculate completeness
         db_data.profile_completeness = OnboardingService.calculate_completeness(db_data)

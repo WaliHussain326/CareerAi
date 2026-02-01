@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Code2, Brain, Smartphone, Shield } from "lucide-react";
+import { Code2, Brain, Smartphone, Shield, Cloud, Server } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { careersAPI, CareerRecommendation } from "@/services/api";
@@ -15,6 +15,17 @@ function getMatchBg(match: number) {
   if (match >= 85) return "bg-success/10";
   if (match >= 70) return "bg-warning/10";
   return "bg-destructive/10";
+}
+
+function getCareerIcon(title: string) {
+  const normalized = title.toLowerCase();
+  if (normalized.includes("data") || normalized.includes("analytics")) return Brain;
+  if (normalized.includes("ai") || normalized.includes("ml") || normalized.includes("machine")) return Brain;
+  if (normalized.includes("cloud")) return Cloud;
+  if (normalized.includes("security") || normalized.includes("cyber")) return Shield;
+  if (normalized.includes("mobile") || normalized.includes("app")) return Smartphone;
+  if (normalized.includes("devops") || normalized.includes("infrastructure")) return Server;
+  return Code2;
 }
 
 export function CareerMatches() {
@@ -38,8 +49,6 @@ export function CareerMatches() {
     }
   };
 
-  const IconMap: any = { Code2, Brain, Smartphone, Shield };
-  
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -74,7 +83,8 @@ export function CareerMatches() {
       ) : (
         <div className="space-y-3">
           {careers.map((career, index) => {
-            const Icon = Code2; // Default icon
+            const Icon = getCareerIcon(career.career_title);
+            const matchScore = career.match_score || 0;
             return (
               <motion.div
                 key={career.id}
@@ -89,16 +99,16 @@ export function CareerMatches() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">{career.career_title}</p>
-                  <p className="text-xs text-muted-foreground">{career.match_score}% Match</p>
+                  <p className="text-xs text-muted-foreground">{matchScore}% Match</p>
                 </div>
                 <div
                   className={cn(
                     "rounded-full px-3 py-1 text-sm font-bold",
-                    getMatchBg(career.match_score),
-                    getMatchColor(career.match_score)
+                    getMatchBg(matchScore),
+                    getMatchColor(matchScore)
                   )}
                 >
-                  {career.match_score}%
+                  {matchScore}%
                 </div>
               </motion.div>
             );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,6 @@ import {
   BookOpen,
   Briefcase,
   Heart,
-  Users,
-  MapPin,
   ArrowRight,
   ArrowLeft,
   CheckCircle,
@@ -36,8 +34,6 @@ interface OnboardingData {
   graduationYear: string;
   currentStatus: string;
   interests: string[];
-  workStyle: string;
-  country: string;
 }
 
 const steps = [
@@ -45,21 +41,236 @@ const steps = [
   { id: 2, title: "Background", icon: BookOpen },
   { id: 3, title: "Status", icon: Briefcase },
   { id: 4, title: "Interests", icon: Heart },
-  { id: 5, title: "Preferences", icon: Users },
 ];
 
-const interestOptions = [
-  "Web Development",
-  "Mobile Development",
-  "Data Science",
-  "Machine Learning",
-  "Cybersecurity",
-  "Cloud Computing",
-  "Game Development",
-  "UI/UX Design",
-  "DevOps",
-  "Blockchain",
+const defaultInterestOptions = [
+  "Problem Solving",
+  "Research & Innovation",
+  "Team Collaboration",
+  "Leadership",
+  "Public Speaking",
+  "Project Management",
+  "Data Analysis",
+  "Design Thinking",
+  "Strategy & Planning",
+  "Creativity",
 ];
+
+const interestOptionsByField: Record<string, string[]> = {
+  "Computer Science": [
+    "Web Development",
+    "Mobile Development",
+    "Data Science",
+    "Machine Learning",
+    "Cybersecurity",
+    "Cloud Computing",
+    "DevOps",
+    "UI/UX Design",
+  ],
+  "Information Technology": [
+    "Systems Administration",
+    "Network Engineering",
+    "Cloud Computing",
+    "Cybersecurity",
+    "IT Support",
+    "DevOps",
+    "Database Management",
+    "IT Project Management",
+  ],
+  "Software Engineering": [
+    "Frontend Engineering",
+    "Backend Engineering",
+    "Full Stack Development",
+    "System Design",
+    "DevOps",
+    "Testing & QA",
+    "Mobile Development",
+    "Cloud Platforms",
+  ],
+  "Data Science": [
+    "Data Analysis",
+    "Machine Learning",
+    "Data Engineering",
+    "Statistics",
+    "Business Intelligence",
+    "AI Research",
+    "Data Visualization",
+    "MLOps",
+  ],
+  "Accounting": [
+    "Financial Reporting",
+    "Taxation",
+    "Auditing",
+    "Forensic Accounting",
+    "Compliance",
+    "Payroll",
+    "Risk Management",
+    "Budgeting",
+  ],
+  "Finance": [
+    "Financial Analysis",
+    "Investment Research",
+    "Corporate Finance",
+    "Risk Management",
+    "Banking",
+    "Portfolio Management",
+    "FinTech",
+    "Financial Modeling",
+  ],
+  "Business Administration": [
+    "Operations Management",
+    "Marketing Strategy",
+    "Human Resources",
+    "Product Management",
+    "Business Analytics",
+    "Entrepreneurship",
+    "Sales & Growth",
+    "Consulting",
+  ],
+  "BBA": [
+    "Operations Management",
+    "Marketing Strategy",
+    "Human Resources",
+    "Product Management",
+    "Business Analytics",
+    "Entrepreneurship",
+    "Sales & Growth",
+    "Consulting",
+  ],
+  "International Relations": [
+    "Policy Analysis",
+    "Diplomacy",
+    "International Development",
+    "Global Security",
+    "Research",
+    "Public Affairs",
+    "NGO Management",
+    "Negotiation",
+  ],
+  "Political Science": [
+    "Policy Analysis",
+    "Public Administration",
+    "Campaign Strategy",
+    "Governance",
+    "Research",
+    "Advocacy",
+    "Legal Studies",
+    "International Affairs",
+  ],
+  "Electrical Engineering": [
+    "Power Systems",
+    "Embedded Systems",
+    "Control Systems",
+    "Signal Processing",
+    "Automation",
+    "Renewable Energy",
+    "IoT",
+    "Circuit Design",
+  ],
+  "Civil Engineering": [
+    "Structural Design",
+    "Construction Management",
+    "Transportation Planning",
+    "Geotechnical Engineering",
+    "Environmental Engineering",
+    "Project Estimation",
+    "Urban Planning",
+    "Water Resources",
+  ],
+  "Mechanical Engineering": [
+    "Product Design",
+    "Manufacturing",
+    "Thermodynamics",
+    "Robotics",
+    "Automotive Systems",
+    "Aerospace Systems",
+    "HVAC",
+    "Materials Engineering",
+  ],
+  "Chemical Engineering": [
+    "Process Engineering",
+    "Quality Control",
+    "Petrochemicals",
+    "Pharmaceuticals",
+    "Energy Systems",
+    "Safety & Compliance",
+    "Process Optimization",
+    "Biochemical Engineering",
+  ],
+  "Economics": [
+    "Economic Research",
+    "Data Analysis",
+    "Policy Analysis",
+    "Financial Markets",
+    "Development Economics",
+    "Behavioral Economics",
+    "Consulting",
+    "Public Policy",
+  ],
+  "Marketing": [
+    "Digital Marketing",
+    "Brand Strategy",
+    "Market Research",
+    "Content Strategy",
+    "Growth Marketing",
+    "Social Media",
+    "Product Marketing",
+    "Analytics",
+  ],
+  "Management": [
+    "People Management",
+    "Operations",
+    "Strategy",
+    "Project Leadership",
+    "Change Management",
+    "Business Analytics",
+    "Consulting",
+    "Entrepreneurship",
+  ],
+  "Human Resources": [
+    "Talent Acquisition",
+    "Learning & Development",
+    "Employee Relations",
+    "HR Analytics",
+    "Compensation & Benefits",
+    "Culture Building",
+    "HR Operations",
+    "Compliance",
+  ],
+  "Psychology": [
+    "Behavioral Research",
+    "Counseling",
+    "Organizational Psychology",
+    "Clinical Practice",
+    "Human Factors",
+    "Assessment",
+    "Mental Health",
+    "User Research",
+  ],
+  "Mathematics": [
+    "Data Analysis",
+    "Quantitative Modeling",
+    "Research",
+    "Algorithm Design",
+    "Statistics",
+    "Financial Mathematics",
+    "Optimization",
+    "Teaching",
+  ],
+  "Physics": [
+    "Research",
+    "Data Analysis",
+    "Simulation",
+    "Quantum Systems",
+    "Astrophysics",
+    "Instrumentation",
+    "Materials Science",
+    "Teaching",
+  ],
+};
+
+const getInterestOptions = (fieldOfStudy: string) =>
+  interestOptionsByField[fieldOfStudy] || defaultInterestOptions;
 
 const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -70,8 +281,6 @@ const Onboarding = () => {
     graduationYear: "",
     currentStatus: "",
     interests: [],
-    workStyle: "",
-    country: "",
   });
 
   const navigate = useNavigate();
@@ -82,6 +291,11 @@ const Onboarding = () => {
   const updateField = (field: keyof OnboardingData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  useEffect(() => {
+    if (!formData.fieldOfStudy) return;
+    setFormData((prev) => ({ ...prev, interests: [] }));
+  }, [formData.fieldOfStudy]);
 
   const toggleInterest = (interest: string) => {
     setFormData((prev) => ({
@@ -124,10 +338,11 @@ const Onboarding = () => {
       const onboardingData = {
         education_level: formData.educationLevel,
         field_of_study: formData.fieldOfStudy,
+        institution: formData.institution,
+        graduation_year: formData.graduationYear ? parseInt(formData.graduationYear, 10) : undefined,
         interests: formData.interests,
-        skills: [], // Can be extended later
-        career_goals: formData.currentStatus,
-        preferred_work_environment: formData.workStyle,
+        current_role: formData.currentStatus,
+        step_completed: 4,
       };
 
       // Submit to backend
@@ -381,7 +596,7 @@ const Onboarding = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                {interestOptions.map((interest) => (
+                {getInterestOptions(formData.fieldOfStudy).map((interest) => (
                   <div
                     key={interest}
                     onClick={() => toggleInterest(interest)}
@@ -398,51 +613,6 @@ const Onboarding = () => {
                     <span className="text-sm">{interest}</span>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Work Style & Location */}
-          {currentStep === 5 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Work Preferences</h2>
-                <p className="text-sm text-muted-foreground">
-                  Help us understand your work style
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Preferred Work Style</Label>
-                  <Select
-                    value={formData.workStyle}
-                    onValueChange={(value) => updateField("workStyle", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select work style" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="remote">Remote</SelectItem>
-                      <SelectItem value="hybrid">Hybrid</SelectItem>
-                      <SelectItem value="onsite">On-site</SelectItem>
-                      <SelectItem value="flexible">Flexible</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Country/Region</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="e.g., United States, India, UK"
-                      className="pl-10"
-                      value={formData.country}
-                      onChange={(e) => updateField("country", e.target.value)}
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           )}

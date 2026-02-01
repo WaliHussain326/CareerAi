@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { careersAPI, CareerRecommendation } from "@/services/api";
@@ -17,98 +16,26 @@ import {
   Star,
   TrendingUp,
   BookOpen,
-  Briefcase,
-  Award,
   Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const careers = [
-  {
-    id: 1,
-    icon: Code2,
-    title: "Full Stack Developer",
-    description: "Build complete web applications from frontend to backend",
-    match: 95,
-    salary: "$85,000 - $150,000",
-    growth: "+25%",
-    demand: "Very High",
-    skills: ["React", "Node.js", "PostgreSQL", "AWS"],
-    color: "from-primary to-primary/70",
-    whySuitsYou: "Your strong frontend and backend skills make you ideal for building complete web solutions. Your interest in both user experience and system design aligns perfectly with full-stack development.",
-  },
-  {
-    id: 2,
-    icon: Brain,
-    title: "AI/ML Engineer",
-    description: "Develop intelligent systems and machine learning models",
-    match: 88,
-    salary: "$100,000 - $180,000",
-    growth: "+40%",
-    demand: "Very High",
-    skills: ["Python", "TensorFlow", "PyTorch", "MLOps"],
-    color: "from-accent to-accent/70",
-    whySuitsYou: "Your analytical thinking and interest in data science position you well for AI/ML engineering. The combination of your programming skills and mathematical background is a perfect match.",
-  },
-  {
-    id: 3,
-    icon: Smartphone,
-    title: "Mobile App Developer",
-    description: "Create native and cross-platform mobile applications",
-    match: 82,
-    salary: "$75,000 - $140,000",
-    growth: "+22%",
-    demand: "High",
-    skills: ["React Native", "Flutter", "Swift", "Kotlin"],
-    color: "from-warning to-warning/70",
-    whySuitsYou: "Your passion for building user-facing applications and UI/UX interest makes you a great fit for mobile development. Your React knowledge transfers well to React Native.",
-  },
-  {
-    id: 4,
-    icon: Shield,
-    title: "Cybersecurity Analyst",
-    description: "Protect systems and networks from security threats",
-    match: 78,
-    salary: "$80,000 - $145,000",
-    growth: "+35%",
-    demand: "Very High",
-    skills: ["Network Security", "Penetration Testing", "SIEM", "Compliance"],
-    color: "from-destructive to-destructive/70",
-    whySuitsYou: "Your attention to detail and interest in security, combined with your technical knowledge, makes you well-suited for protecting digital assets.",
-  },
-  {
-    id: 5,
-    icon: Cloud,
-    title: "Cloud Solutions Architect",
-    description: "Design scalable cloud infrastructure solutions",
-    match: 75,
-    salary: "$120,000 - $200,000",
-    growth: "+30%",
-    demand: "High",
-    skills: ["AWS", "Azure", "Kubernetes", "Terraform"],
-    color: "from-success to-success/70",
-    whySuitsYou: "Your system design skills and interest in scalability align well with cloud architecture. Your DevOps knowledge provides a strong foundation.",
-  },
-  {
-    id: 6,
-    icon: Server,
-    title: "DevOps Engineer",
-    description: "Streamline development and operations processes",
-    match: 72,
-    salary: "$90,000 - $160,000",
-    growth: "+28%",
-    demand: "High",
-    skills: ["Docker", "CI/CD", "Jenkins", "Monitoring"],
-    color: "from-chart-5 to-chart-5/70",
-    whySuitsYou: "Your interest in automation and system optimization makes you a strong candidate for DevOps. Your full-stack knowledge helps bridge development and operations.",
-  },
-];
 
 function getMatchColor(match: number) {
   if (match >= 85) return "text-success";
   if (match >= 70) return "text-warning";
   return "text-destructive";
 }
+
+const getCareerIcon = (title: string) => {
+  const normalized = title.toLowerCase();
+  if (normalized.includes("data") || normalized.includes("analytics")) return Brain;
+  if (normalized.includes("ai") || normalized.includes("ml") || normalized.includes("machine")) return Brain;
+  if (normalized.includes("cloud")) return Cloud;
+  if (normalized.includes("security") || normalized.includes("cyber")) return Shield;
+  if (normalized.includes("mobile") || normalized.includes("app")) return Smartphone;
+  if (normalized.includes("devops") || normalized.includes("infrastructure")) return Server;
+  return Code2;
+};
 
 const Recommendations = () => {
   const navigate = useNavigate();
@@ -127,7 +54,7 @@ const Recommendations = () => {
       
       // If no recommendations exist, generate them
       if (!data || data.length === 0) {
-        await generateRecommendations();
+        await generateRecommendations(true);
       } else {
         setCareers(data);
       }
@@ -135,7 +62,7 @@ const Recommendations = () => {
       console.error("Failed to load recommendations:", error);
       // If error is 404, try to generate new recommendations
       if (error.response?.status === 404) {
-        await generateRecommendations();
+        await generateRecommendations(true);
       } else {
         toast.error("Failed to load career recommendations");
       }
@@ -144,11 +71,11 @@ const Recommendations = () => {
     }
   };
 
-  const generateRecommendations = async () => {
+  const generateRecommendations = async (forceRegenerate = false) => {
     setIsGenerating(true);
     try {
       toast.info("Generating AI-powered career recommendations...");
-      const { data } = await careersAPI.generateRecommendations();
+      const { data } = await careersAPI.generateRecommendations({ force_regenerate: forceRegenerate });
       setCareers(data);
       toast.success("Recommendations generated successfully!");
     } catch (error: any) {
@@ -160,7 +87,7 @@ const Recommendations = () => {
   };
 
   const averageMatchScore = careers.length > 0 
-    ? Math.round(careers.reduce((acc, c) => acc + c.match_score, 0) / careers.length)
+    ? Math.round(careers.reduce((acc, c) => acc + (c.match_score || 0), 0) / careers.length)
     : 0;
 
   if (isLoading || isGenerating) {
@@ -208,6 +135,13 @@ const Recommendations = () => {
               <p className="text-3xl font-bold">{careers.length}</p>
               <p className="text-xs text-primary-foreground/70">Career Options</p>
             </div>
+            <Button
+              variant="secondary"
+              onClick={() => generateRecommendations(true)}
+              className="bg-white/10 text-primary-foreground hover:bg-white/20"
+            >
+              Regenerate with AI
+            </Button>
           </div>
         </div>
       </motion.div>
@@ -220,11 +154,11 @@ const Recommendations = () => {
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {careers.map((career, index) => {
-            // Map backend icons to frontend
-            const IconMap: { [key: string]: any } = {
-              Code2, Brain, Smartphone, Shield, Cloud, Server
-            };
-            const CareerIcon = Code2; // Default icon
+            const CareerIcon = getCareerIcon(career.career_title);
+            const requiredSkills = career.required_skills || [];
+            const description = career.career_description || "";
+            const reasoning = career.reasoning || "";
+            const matchScore = career.match_score || 0;
 
             return (
               <motion.div
@@ -239,11 +173,11 @@ const Recommendations = () => {
                   <div
                     className={cn(
                       "flex items-center gap-1 rounded-full bg-card/90 backdrop-blur px-3 py-1",
-                      getMatchColor(career.match_score)
+                      getMatchColor(matchScore)
                     )}
                   >
                     <Star className="h-3.5 w-3.5 fill-current" />
-                    <span className="text-sm font-bold">{career.match_score}%</span>
+                    <span className="text-sm font-bold">{matchScore}%</span>
                   </div>
                 </div>
 
@@ -258,8 +192,15 @@ const Recommendations = () => {
                     {career.career_title}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    {career.description}
+                    {description}
                   </p>
+
+                  {reasoning && (
+                    <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3">
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">AI Review</p>
+                      <p className="text-xs text-muted-foreground line-clamp-3">{reasoning}</p>
+                    </div>
+                  )}
 
                   {/* Stats */}
                   <div className="flex items-center gap-4 mb-4 text-xs">
@@ -280,7 +221,7 @@ const Recommendations = () => {
                       Key Skills to Learn
                     </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {career.required_skills.slice(0, 4).map((skill) => (
+                      {requiredSkills.slice(0, 4).map((skill) => (
                         <span
                           key={skill}
                           className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground"

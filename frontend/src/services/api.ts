@@ -46,23 +46,28 @@ export const authAPI = {
 
 // ==================== Onboarding API ====================
 export interface OnboardingData {
-  education_level: string;
-  field_of_study: string;
-  interests: string[];
-  skills: string[];
-  career_goals: string;
-  preferred_work_environment: string;
+  age?: number;
+  gender?: string;
+  location?: string;
+  education_level?: string;
+  field_of_study?: string;
+  institution?: string;
+  graduation_year?: number;
+  years_of_experience?: number;
+  current_role?: string;
+  industry?: string;
+  technical_skills?: string[];
+  soft_skills?: string[];
+  interests?: string[];
+  career_goals?: string;
+  step_completed?: number;
 }
 
-export interface OnboardingResponse {
+export interface OnboardingResponse extends OnboardingData {
   id: number;
   user_id: number;
-  education_level: string;
-  field_of_study: string;
-  interests: string[];
-  skills: string[];
-  career_goals: string;
-  preferred_work_environment: string;
+  is_completed: boolean;
+  profile_completeness: number;
   created_at: string;
   updated_at: string;
 }
@@ -138,35 +143,51 @@ export const quizAPI = {
 export interface SkillGap {
   id: number;
   skill_name: string;
-  importance: string;
-  resources: string[];
+  current_level?: string;
+  required_level?: string;
+  priority?: string;
+  estimated_time?: string;
+}
+
+export interface LearningRoadmapResource {
+  type?: string;
+  name?: string;
+  provider?: string;
+  link?: string;
 }
 
 export interface LearningRoadmapStep {
   id: number;
   phase: string;
-  duration: string;
-  topics: string[];
-  resources: string[];
+  duration?: string;
+  objectives?: string[];
+  resources?: LearningRoadmapResource[];
+  order?: number;
 }
 
 export interface CareerRecommendation {
   id: number;
   user_id: number;
   career_title: string;
-  match_score: number;
-  description: string;
-  required_skills: string[];
-  salary_range: string;
-  growth_potential: string;
+  career_description?: string;
+  match_score?: number;
+  reasoning?: string;
+  required_skills?: string[];
+  growth_potential?: string;
+  salary_range?: string;
+  work_environment?: string;
   created_at: string;
   skill_gaps?: SkillGap[];
   learning_roadmap?: LearningRoadmapStep[];
 }
 
+export interface GenerateRecommendationsRequest {
+  force_regenerate?: boolean;
+}
+
 export const careersAPI = {
-  generateRecommendations: () => 
-    axios.post<CareerRecommendation[]>('/careers/generate'),
+  generateRecommendations: (data?: GenerateRecommendationsRequest) => 
+    axios.post<CareerRecommendation[]>('/careers/generate', data || {}),
   
   getRecommendations: () => 
     axios.get<CareerRecommendation[]>('/careers'),

@@ -57,7 +57,7 @@ const Login = () => {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
                 <Brain className="h-7 w-7" />
               </div>
-              <span className="text-2xl font-bold">CareerAI</span>
+              <span className="text-2xl font-bold">NextStepAi</span>
             </div>
             
             <h1 className="text-4xl font-bold mb-4">
@@ -103,7 +103,7 @@ const Login = () => {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg gradient-primary">
               <Brain className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">CareerAI</span>
+            <span className="text-xl font-bold text-foreground">NextStepAi</span>
           </div>
 
           <div className="mb-8">

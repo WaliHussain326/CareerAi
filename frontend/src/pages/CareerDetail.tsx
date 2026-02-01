@@ -2,7 +2,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useState, useEffect } from "react";
@@ -19,72 +18,22 @@ import {
   Star,
   TrendingUp,
   Briefcase,
-  MapPin,
   Award,
   Target,
-  CheckCircle,
   AlertCircle,
   BookOpen,
   ExternalLink,
 } from "lucide-react";
 
-// TODO: This would come from backend
-const careerData = {
-  "1": {
-    icon: Code2,
-    title: "Full Stack Developer",
-    description: "Build complete web applications from frontend to backend",
-    match: 95,
-    salary: "$85,000 - $150,000",
-    growth: "+25%",
-    demand: "Very High",
-    skills: ["React", "Node.js", "PostgreSQL", "AWS"],
-    color: "from-primary to-primary/70",
-    whySuitsYou: "Your strong frontend and backend skills make you ideal for building complete web solutions. Your interest in both user experience and system design aligns perfectly with full-stack development.",
-    responsibilities: [
-      "Design and develop user-facing features",
-      "Build reusable code and libraries",
-      "Optimize applications for maximum speed and scalability",
-      "Collaborate with team members and stakeholders",
-      "Implement security and data protection measures",
-    ],
-    skillGaps: [
-      { skill: "React", current: 75, required: 80, gap: 5 },
-      { skill: "Node.js", current: 70, required: 85, gap: 15 },
-      { skill: "PostgreSQL", current: 60, required: 75, gap: 15 },
-      { skill: "AWS", current: 45, required: 70, gap: 25 },
-      { skill: "Docker", current: 50, required: 65, gap: 15 },
-    ],
-    learningPath: [
-      {
-        level: "Beginner",
-        duration: "1-2 months",
-        courses: [
-          { title: "React - The Complete Guide", platform: "Udemy", duration: "40 hours" },
-          { title: "Node.js Fundamentals", platform: "Coursera", duration: "30 hours" },
-        ],
-      },
-      {
-        level: "Intermediate",
-        duration: "3-4 months",
-        courses: [
-          { title: "Advanced React Patterns", platform: "Frontend Masters", duration: "25 hours" },
-          { title: "PostgreSQL for Developers", platform: "Pluralsight", duration: "20 hours" },
-          { title: "AWS Certified Developer", platform: "A Cloud Guru", duration: "35 hours" },
-        ],
-      },
-      {
-        level: "Advanced",
-        duration: "5-6 months",
-        courses: [
-          { title: "Microservices Architecture", platform: "Udacity", duration: "50 hours" },
-          { title: "System Design Interview Prep", platform: "Educative", duration: "30 hours" },
-          { title: "Production-Ready Docker", platform: "Docker", duration: "20 hours" },
-        ],
-      },
-    ],
-  },
-  // Add more careers as needed
+const getCareerIcon = (title: string) => {
+  const normalized = title.toLowerCase();
+  if (normalized.includes("data") || normalized.includes("analytics")) return Brain;
+  if (normalized.includes("ai") || normalized.includes("ml") || normalized.includes("machine")) return Brain;
+  if (normalized.includes("cloud")) return Cloud;
+  if (normalized.includes("security") || normalized.includes("cyber")) return Shield;
+  if (normalized.includes("mobile") || normalized.includes("app")) return Smartphone;
+  if (normalized.includes("devops") || normalized.includes("infrastructure")) return Server;
+  return Code2;
 };
 
 const CareerDetail = () => {
@@ -137,7 +86,10 @@ const CareerDetail = () => {
     );
   }
 
-  const Icon = Code2; // Default icon
+  const Icon = getCareerIcon(career.career_title);
+  const description = career.career_description || "";
+  const requiredSkills = career.required_skills || [];
+  const matchScore = career.match_score || 0;
 
   return (
     <DashboardLayout title={career.career_title} subtitle="Career Path Details">
@@ -169,11 +121,11 @@ const CareerDetail = () => {
                   <h1 className="text-3xl font-bold text-foreground mb-2">
                     {career.career_title}
                   </h1>
-                  <p className="text-muted-foreground">{career.description}</p>
+                  <p className="text-muted-foreground">{description}</p>
                 </div>
                 <Badge className="bg-success/10 text-success border-success/20 text-lg px-4 py-2">
                   <Star className="h-4 w-4 mr-1 fill-current" />
-                  {career.match_score}% Match
+                  {matchScore}% Match
                 </Badge>
               </div>
 
@@ -189,14 +141,14 @@ const CareerDetail = () => {
                   <Target className="h-5 w-5 text-primary" />
                   <div>
                     <p className="text-xs text-muted-foreground">Match Score</p>
-                    <p className="font-semibold text-foreground">{career.match_score}%</p>
+                    <p className="font-semibold text-foreground">{matchScore}%</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Award className="h-5 w-5 text-warning" />
                   <div>
                     <p className="text-xs text-muted-foreground">Skills Required</p>
-                    <p className="font-semibold text-foreground">{career.required_skills.length}</p>
+                    <p className="font-semibold text-foreground">{requiredSkills.length}</p>
                   </div>
                 </div>
               </div>
@@ -225,9 +177,26 @@ const CareerDetail = () => {
                 Career Description
               </h3>
               <p className="text-muted-foreground leading-relaxed">
-                {career.description}
+                {description}
               </p>
             </motion.div>
+
+            {career.reasoning && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-xl border border-border bg-card p-6 card-shadow"
+              >
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-primary" />
+                  AI Review
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {career.reasoning}
+                </p>
+              </motion.div>
+            )}
 
             <motion.div
               initial={{ opacity: 0 }}
@@ -240,13 +209,35 @@ const CareerDetail = () => {
                 Required Skills
               </h3>
               <div className="flex flex-wrap gap-2">
-                {career.required_skills.map((skill) => (
+                {requiredSkills.map((skill) => (
                   <Badge key={skill} variant="secondary" className="text-sm px-3 py-1">
                     {skill}
                   </Badge>
                 ))}
               </div>
             </motion.div>
+
+            {(career.salary_range || career.work_environment) && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-xl border border-border bg-card p-6 card-shadow"
+              >
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  Role Details
+                </h3>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  {career.salary_range && (
+                    <p><span className="font-medium text-foreground">Salary Range:</span> {career.salary_range}</p>
+                  )}
+                  {career.work_environment && (
+                    <p><span className="font-medium text-foreground">Work Environment:</span> {career.work_environment}</p>
+                  )}
+                </div>
+              </motion.div>
+            )}
           </TabsContent>
 
           {/* Skill Gap Tab */}
@@ -266,29 +257,30 @@ const CareerDetail = () => {
                     <div key={index}>
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-foreground">{item.skill_name}</span>
-                        <Badge
-                          variant={item.importance === "high" ? "destructive" : item.importance === "medium" ? "default" : "secondary"}
-                          className="ml-2"
-                        >
-                          {item.importance} priority
-                        </Badge>
+                        {item.priority && (
+                          <Badge
+                            variant={item.priority === "high" ? "destructive" : item.priority === "medium" ? "default" : "secondary"}
+                            className="ml-2"
+                          >
+                            {item.priority} priority
+                          </Badge>
+                        )}
                       </div>
-                      {item.resources && item.resources.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {item.resources.map((resource, idx) => (
-                            <a
-                              key={idx}
-                              href={resource}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-primary hover:underline flex items-center gap-1"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                              Resource {idx + 1}
-                            </a>
-                          ))}
-                        </div>
-                      )}
+                      <div className="text-xs text-muted-foreground">
+                        {item.current_level && (
+                          <span>Current: {item.current_level}</span>
+                        )}
+                        {item.current_level && item.required_level && <span className="mx-2">•</span>}
+                        {item.required_level && (
+                          <span>Required: {item.required_level}</span>
+                        )}
+                        {item.estimated_time && (
+                          <>
+                            <span className="mx-2">•</span>
+                            <span>Est. {item.estimated_time}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -346,14 +338,14 @@ const CareerDetail = () => {
                         <p className="text-sm text-muted-foreground">{phase.duration}</p>
                       </div>
                     </div>
-                    <Badge variant="outline">{phase.topics.length} Topics</Badge>
+                    <Badge variant="outline">{phase.objectives?.length || 0} Objectives</Badge>
                   </div>
 
                   <div className="space-y-3">
                     <div className="mb-3">
                       <h4 className="text-sm font-medium text-foreground mb-2">Topics to Learn:</h4>
                       <div className="flex flex-wrap gap-2">
-                        {phase.topics.map((topic, idx) => (
+                        {(phase.objectives || []).map((topic, idx) => (
                           <Badge key={idx} variant="secondary">
                             {topic}
                           </Badge>
@@ -372,7 +364,12 @@ const CareerDetail = () => {
                             >
                               <div className="flex items-center gap-3">
                                 <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                <p className="text-sm text-foreground">{resource}</p>
+                                <div>
+                                  <p className="text-sm text-foreground">{resource.name || resource.type || "Resource"}</p>
+                                  {resource.provider && (
+                                    <p className="text-xs text-muted-foreground">{resource.provider}</p>
+                                  )}
+                                </div>
                               </div>
                               <Button variant="ghost" size="sm">
                                 <ExternalLink className="h-4 w-4" />
@@ -407,7 +404,7 @@ const CareerDetail = () => {
               {roadmap.length > 0 ? (
                 <div className="space-y-4">
                   {roadmap.flatMap((phase) => 
-                    phase.resources.map((resource, index) => (
+                    (phase.resources || []).map((resource, index) => (
                       <div
                         key={`${phase.id}-${index}`}
                         className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 transition-colors"
@@ -417,7 +414,9 @@ const CareerDetail = () => {
                             <BookOpen className="h-6 w-6 text-primary" />
                           </div>
                           <div>
-                            <p className="font-semibold text-foreground">{resource}</p>
+                            <p className="font-semibold text-foreground">
+                              {resource.name || resource.type || "Learning Resource"}
+                            </p>
                             <p className="text-sm text-muted-foreground">
                               {phase.phase} • {phase.duration}
                             </p>

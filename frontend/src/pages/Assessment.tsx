@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { useQuiz } from "@/contexts/QuizContext";
 import { toast } from "sonner";
-import { quizAPI, QuizQuestion } from "@/services/api";
+import { onboardingAPI, quizAPI, QuizQuestion } from "@/services/api";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,7 +18,6 @@ import {
   Heart,
   Wrench,
   Brain,
-  Target,
   Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,26 +27,167 @@ const sections = [
   { id: "interests", title: "Interest Mapping", icon: Heart },
   { id: "skills", title: "Skill Assessment", icon: Wrench },
   { id: "workstyle", title: "Work Style", icon: Brain },
-  { id: "preferences", title: "Career Preferences", icon: Target },
 ];
 
-const interestOptions = [
-  { id: "building", label: "Building Applications", icon: "🏗️" },
-  { id: "algorithms", label: "Solving Algorithms", icon: "🧮" },
-  { id: "data", label: "Working with Data", icon: "📊" },
-  { id: "systems", label: "Designing Systems", icon: "⚙️" },
-  { id: "research", label: "Research & Innovation", icon: "🔬" },
-  { id: "security", label: "Security & Privacy", icon: "🔐" },
-];
+const getInterestOptions = (field: string) => {
+  const fieldMap: Record<string, { id: string; label: string; icon: string }[]> = {
+    "Computer Science": [
+      { id: "building", label: "Building Applications", icon: "🏗️" },
+      { id: "algorithms", label: "Solving Algorithms", icon: "🧮" },
+      { id: "data", label: "Working with Data", icon: "📊" },
+      { id: "systems", label: "Designing Systems", icon: "⚙️" },
+      { id: "research", label: "Research & Innovation", icon: "🔬" },
+      { id: "security", label: "Security & Privacy", icon: "🔐" },
+    ],
+    "Software Engineering": [
+      { id: "frontend", label: "Frontend Engineering", icon: "🎨" },
+      { id: "backend", label: "Backend Systems", icon: "🧠" },
+      { id: "testing", label: "Testing & QA", icon: "🧪" },
+      { id: "devops", label: "DevOps Automation", icon: "⚙️" },
+      { id: "architecture", label: "System Architecture", icon: "🏗️" },
+      { id: "security", label: "Secure Development", icon: "🔐" },
+    ],
+    "Information Technology": [
+      { id: "support", label: "IT Support", icon: "🛠️" },
+      { id: "network", label: "Networking", icon: "🌐" },
+      { id: "infra", label: "Infrastructure", icon: "🏢" },
+      { id: "security", label: "Security", icon: "🔐" },
+      { id: "cloud", label: "Cloud Systems", icon: "☁️" },
+      { id: "automation", label: "Automation", icon: "🤖" },
+    ],
+    "Data Science": [
+      { id: "analysis", label: "Data Analysis", icon: "📈" },
+      { id: "ml", label: "Machine Learning", icon: "🤖" },
+      { id: "viz", label: "Data Visualization", icon: "📊" },
+      { id: "research", label: "Research", icon: "🔬" },
+      { id: "engineering", label: "Data Engineering", icon: "🏗️" },
+      { id: "ai", label: "AI Systems", icon: "🧠" },
+    ],
+    "Accounting": [
+      { id: "reporting", label: "Financial Reporting", icon: "🧾" },
+      { id: "tax", label: "Taxation", icon: "📑" },
+      { id: "audit", label: "Auditing", icon: "🔎" },
+      { id: "forensic", label: "Forensic Accounting", icon: "🕵️" },
+      { id: "compliance", label: "Compliance", icon: "✅" },
+      { id: "analysis", label: "Financial Analysis", icon: "📊" },
+    ],
+    "Finance": [
+      { id: "invest", label: "Investment Analysis", icon: "📈" },
+      { id: "risk", label: "Risk Management", icon: "⚠️" },
+      { id: "banking", label: "Banking", icon: "🏦" },
+      { id: "markets", label: "Capital Markets", icon: "💹" },
+      { id: "planning", label: "Financial Planning", icon: "🧭" },
+      { id: "fintech", label: "FinTech", icon: "💳" },
+    ],
+    "Business Administration": [
+      { id: "strategy", label: "Strategy", icon: "♟️" },
+      { id: "ops", label: "Operations", icon: "⚙️" },
+      { id: "marketing", label: "Marketing", icon: "📣" },
+      { id: "people", label: "People Management", icon: "👥" },
+      { id: "product", label: "Product", icon: "📦" },
+      { id: "analytics", label: "Business Analytics", icon: "📊" },
+    ],
+    "Marketing": [
+      { id: "brand", label: "Brand Strategy", icon: "🎯" },
+      { id: "digital", label: "Digital Marketing", icon: "💻" },
+      { id: "content", label: "Content", icon: "✍️" },
+      { id: "growth", label: "Growth", icon: "🚀" },
+      { id: "research", label: "Market Research", icon: "🔎" },
+      { id: "social", label: "Social Media", icon: "📱" },
+    ],
+  };
 
-const domainOptions = [
-  { id: "web", label: "Web Development", color: "bg-primary" },
-  { id: "mobile", label: "Mobile Apps", color: "bg-accent" },
-  { id: "ai", label: "Artificial Intelligence", color: "bg-warning" },
-  { id: "security", label: "Cyber Security", color: "bg-destructive" },
-  { id: "games", label: "Game Development", color: "bg-success" },
-  { id: "cloud", label: "Cloud & DevOps", color: "bg-chart-5" },
-];
+  return (
+    fieldMap[field] || [
+      { id: "problem", label: "Problem Solving", icon: "🧩" },
+      { id: "research", label: "Research & Innovation", icon: "🔬" },
+      { id: "analysis", label: "Data Analysis", icon: "📊" },
+      { id: "leadership", label: "Leadership", icon: "🧭" },
+      { id: "collaboration", label: "Collaboration", icon: "🤝" },
+      { id: "communication", label: "Communication", icon: "🗣️" },
+    ]
+  );
+};
+
+const getDomainOptions = (field: string) => {
+  const fieldMap: Record<string, { id: string; label: string; color: string }[]> = {
+    "Computer Science": [
+      { id: "web", label: "Web Development", color: "bg-primary" },
+      { id: "mobile", label: "Mobile Apps", color: "bg-accent" },
+      { id: "ai", label: "Artificial Intelligence", color: "bg-warning" },
+      { id: "security", label: "Cyber Security", color: "bg-destructive" },
+      { id: "games", label: "Game Development", color: "bg-success" },
+      { id: "cloud", label: "Cloud & DevOps", color: "bg-chart-5" },
+    ],
+    "Software Engineering": [
+      { id: "frontend", label: "Frontend", color: "bg-primary" },
+      { id: "backend", label: "Backend", color: "bg-accent" },
+      { id: "devops", label: "DevOps", color: "bg-chart-5" },
+      { id: "mobile", label: "Mobile", color: "bg-warning" },
+      { id: "qa", label: "QA & Testing", color: "bg-success" },
+      { id: "security", label: "Secure Systems", color: "bg-destructive" },
+    ],
+    "Information Technology": [
+      { id: "infra", label: "Infrastructure", color: "bg-primary" },
+      { id: "network", label: "Networking", color: "bg-accent" },
+      { id: "cloud", label: "Cloud", color: "bg-chart-5" },
+      { id: "security", label: "Security", color: "bg-destructive" },
+      { id: "support", label: "IT Support", color: "bg-success" },
+      { id: "automation", label: "Automation", color: "bg-warning" },
+    ],
+    "Data Science": [
+      { id: "analysis", label: "Analytics", color: "bg-primary" },
+      { id: "ml", label: "Machine Learning", color: "bg-accent" },
+      { id: "engineering", label: "Data Engineering", color: "bg-warning" },
+      { id: "ai", label: "AI Products", color: "bg-chart-5" },
+      { id: "research", label: "Research", color: "bg-success" },
+      { id: "viz", label: "Visualization", color: "bg-destructive" },
+    ],
+    "Accounting": [
+      { id: "audit", label: "Audit & Assurance", color: "bg-primary" },
+      { id: "tax", label: "Tax", color: "bg-accent" },
+      { id: "reporting", label: "Reporting", color: "bg-warning" },
+      { id: "forensic", label: "Forensic", color: "bg-destructive" },
+      { id: "compliance", label: "Compliance", color: "bg-success" },
+      { id: "analysis", label: "Financial Analysis", color: "bg-chart-5" },
+    ],
+    "Finance": [
+      { id: "banking", label: "Banking", color: "bg-primary" },
+      { id: "invest", label: "Investments", color: "bg-accent" },
+      { id: "risk", label: "Risk", color: "bg-destructive" },
+      { id: "planning", label: "Financial Planning", color: "bg-success" },
+      { id: "markets", label: "Capital Markets", color: "bg-warning" },
+      { id: "fintech", label: "FinTech", color: "bg-chart-5" },
+    ],
+    "Business Administration": [
+      { id: "strategy", label: "Strategy", color: "bg-primary" },
+      { id: "ops", label: "Operations", color: "bg-accent" },
+      { id: "marketing", label: "Marketing", color: "bg-warning" },
+      { id: "product", label: "Product", color: "bg-success" },
+      { id: "people", label: "People Ops", color: "bg-destructive" },
+      { id: "analytics", label: "Business Analytics", color: "bg-chart-5" },
+    ],
+    "Marketing": [
+      { id: "brand", label: "Brand", color: "bg-primary" },
+      { id: "digital", label: "Digital", color: "bg-accent" },
+      { id: "content", label: "Content", color: "bg-warning" },
+      { id: "growth", label: "Growth", color: "bg-success" },
+      { id: "research", label: "Research", color: "bg-destructive" },
+      { id: "social", label: "Social", color: "bg-chart-5" },
+    ],
+  };
+
+  return (
+    fieldMap[field] || [
+      { id: "strategy", label: "Strategy", color: "bg-primary" },
+      { id: "analysis", label: "Analysis", color: "bg-accent" },
+      { id: "operations", label: "Operations", color: "bg-warning" },
+      { id: "research", label: "Research", color: "bg-success" },
+      { id: "communication", label: "Communication", color: "bg-chart-5" },
+      { id: "leadership", label: "Leadership", color: "bg-destructive" },
+    ]
+  );
+};
 
 const skillsList = [
   "Python",
@@ -73,8 +213,6 @@ interface QuizAnswers {
     teamPreference?: string;
     problemApproach?: string;
   };
-  careerGoal?: string;
-  industryPreference?: string;
 }
 
 const Assessment = () => {
@@ -84,6 +222,7 @@ const Assessment = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [fieldOfStudy, setFieldOfStudy] = useState<string>("");
   const [answers, setAnswers] = useState<QuizAnswers>({
     selectedInterests: [],
     selectedDomains: [],
@@ -98,6 +237,15 @@ const Assessment = () => {
       try {
         const { data } = await quizAPI.getQuestions();
         setQuizQuestions(data);
+
+        try {
+          const { data: onboarding } = await onboardingAPI.get();
+          if (onboarding?.field_of_study) {
+            setFieldOfStudy(onboarding.field_of_study);
+          }
+        } catch (error) {
+          // Onboarding may not be completed yet
+        }
         
         // Load saved local progress
         const savedState = localStorage.getItem("quizAnswers");
@@ -115,6 +263,15 @@ const Assessment = () => {
     loadQuiz();
     updateQuizStatus("in-progress");
   }, []);
+
+  useEffect(() => {
+    if (!fieldOfStudy) return;
+    setAnswers((prev) => ({
+      ...prev,
+      selectedInterests: [],
+      selectedDomains: [],
+    }));
+  }, [fieldOfStudy]);
 
   const progress = ((currentSection + 1) / sections.length) * 100;
 
@@ -275,7 +432,7 @@ const Assessment = () => {
                     Select all that apply
                   </p>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {interestOptions.map((option) => (
+                    {getInterestOptions(fieldOfStudy).map((option) => (
                       <motion.button
                         key={option.id}
                         whileHover={{ scale: 1.02 }}
@@ -315,7 +472,7 @@ const Assessment = () => {
                     Select up to 3 domains
                   </p>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {domainOptions.map((option) => (
+                    {getDomainOptions(fieldOfStudy).map((option) => (
                       <motion.button
                         key={option.id}
                         whileHover={{ scale: 1.02 }}
@@ -537,67 +694,6 @@ const Assessment = () => {
               </div>
             )}
 
-            {currentSection === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="mb-4 text-lg font-medium text-foreground">
-                    Career Preferences
-                  </h3>
-                  <p className="mb-6 text-sm text-muted-foreground">
-                    What matters most to you in your career?
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="text-sm font-medium text-foreground">Preferred career goal:</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      "High-paying job",
-                      "Research-based career",
-                      "Startup / Entrepreneurship",
-                      "Work-life balance",
-                    ].map((goal) => (
-                      <button
-                        key={goal}
-                        onClick={() => setAnswers((prev) => ({ ...prev, careerGoal: goal }))}
-                        className={cn(
-                          "rounded-lg border-2 p-4 text-sm font-medium transition-all",
-                          answers.careerGoal === goal
-                            ? "border-primary bg-primary/5 text-foreground"
-                            : "border-border text-foreground hover:border-primary/50 hover:bg-primary/5"
-                        )}
-                      >
-                        {goal}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="text-sm font-medium text-foreground">Preferred industry:</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {["Tech companies", "Freelancing", "Government", "Academia"].map(
-                      (industry) => (
-                        <button
-                          key={industry}
-                          onClick={() =>
-                            setAnswers((prev) => ({ ...prev, industryPreference: industry }))
-                          }
-                          className={cn(
-                            "rounded-lg border-2 p-4 text-sm font-medium transition-all",
-                            answers.industryPreference === industry
-                              ? "border-primary bg-primary/5 text-foreground"
-                              : "border-border text-foreground hover:border-primary/50 hover:bg-primary/5"
-                          )}
-                        >
-                          {industry}
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
           </motion.div>
         </AnimatePresence>
 

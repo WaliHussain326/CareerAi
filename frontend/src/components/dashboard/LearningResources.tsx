@@ -31,7 +31,7 @@ export function LearningResources() {
       const careerResources: Resource[] = topCareers.map((career, index) => ({
         icon: [Code, Database, Cloud][index] || BookOpen,
         title: career.career_title,
-        description: career.description.substring(0, 50) + "...",
+        description: (career.career_description || "").substring(0, 50) + "...",
         gradient: ["from-primary to-primary/70", "from-muted-foreground to-muted-foreground/70", "from-accent to-accent/70"][index],
         careerId: career.id,
       }));

@@ -3,14 +3,11 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
   ChevronRight,
-  Check,
-  Circle,
   BookOpen,
   Code,
   Database,
   Cloud,
   Lock,
-  ExternalLink,
   Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,6 +15,14 @@ import { useEffect, useState } from "react";
 import { careersAPI } from "@/services/api";
 import { useNavigate } from "react-router-dom";
 import type { CareerRecommendation } from "@/services/api";
+
+const getCareerIcon = (title: string) => {
+  const normalized = title.toLowerCase();
+  if (normalized.includes("data") || normalized.includes("analytics")) return Database;
+  if (normalized.includes("cloud")) return Cloud;
+  if (normalized.includes("security") || normalized.includes("cyber")) return Lock;
+  return Code;
+};
 
 const CareerPaths = () => {
   const navigate = useNavigate();
@@ -87,17 +92,20 @@ const CareerPaths = () => {
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary">
-                <Code className="h-6 w-6 text-primary-foreground" />
+                {(() => {
+                  const Icon = getCareerIcon(career.career_title);
+                  return <Icon className="h-6 w-6 text-primary-foreground" />;
+                })()}
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-foreground">{career.match_score}%</div>
+                <div className="text-2xl font-bold text-foreground">{career.match_score || 0}%</div>
                 <div className="text-xs text-muted-foreground">Match</div>
               </div>
             </div>
             
             <h3 className="text-lg font-bold text-foreground mb-2">{career.career_title}</h3>
             <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-              {career.description}
+              {career.career_description || ""}
             </p>
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">

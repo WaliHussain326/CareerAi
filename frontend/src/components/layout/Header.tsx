@@ -21,8 +21,8 @@ export function Header({ title, subtitle }: HeaderProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
   return (
@@ -52,14 +52,25 @@ export function Header({ title, subtitle }: HeaderProps) {
         {/* Profile */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5 text-muted-foreground" />
+            <Button variant="ghost" size="icon" className="rounded-full">
+              {user?.full_name || user?.email ? (
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                  {(user?.full_name || user?.email || "U")
+                    .split(" ")
+                    .map((part) => part[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </span>
+              ) : (
+                <User className="h-5 w-5 text-muted-foreground" />
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div>
-                <p className="font-medium">{user?.name}</p>
+                <p className="font-medium">{user?.full_name || "User"}</p>
                 <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
             </DropdownMenuLabel>

@@ -48,7 +48,7 @@ const faqs = [
   {
     question: "How do I contact support?",
     answer:
-      "You can reach our support team through the chat widget, email at support@careerai.com, or by submitting a ticket. We typically respond within 24 hours on business days.",
+      "You can reach our support team through the chat widget, email at support@nextstepai.com, or by submitting a ticket. We typically respond within 24 hours on business days.",
   },
 ];
 
@@ -74,8 +74,8 @@ const resources = [
   {
     icon: Mail,
     title: "Email Support",
-    description: "support@careerai.com",
-    link: "mailto:support@careerai.com",
+    description: "support@nextstepai.com",
+    link: "mailto:support@nextstepai.com",
   },
 ];
 
