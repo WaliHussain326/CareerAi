@@ -9,9 +9,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuiz } from "@/contexts/QuizContext";
 import { useEffect, useState } from "react";
 import { careersAPI } from "@/services/api";
+import { Navigate } from "react-router-dom";
 
 const Index = () => {
   const { user } = useAuth();
+  
+  // Redirect admin users to admin portal
+  if (user?.is_admin) {
+    return <Navigate to="/admin" replace />;
+  }
   const { quizStatus, profileCompleteness, calculateProfileCompleteness } = useQuiz();
   const [careerMatchCount, setCareerMatchCount] = useState(0);
 

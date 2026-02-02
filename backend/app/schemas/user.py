@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, computed_field
 from typing import Optional
 from datetime import datetime
 
@@ -19,6 +19,11 @@ class UserResponse(UserBase):
     role: str
     is_active: bool
     created_at: datetime
+    
+    @computed_field
+    @property
+    def is_admin(self) -> bool:
+        return self.role == "admin"
     
     class Config:
         from_attributes = True

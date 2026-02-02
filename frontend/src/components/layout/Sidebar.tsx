@@ -11,6 +11,7 @@ import {
   HelpCircle,
   LogOut,
   Brain,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +30,10 @@ const resourceNavItems = [
   { icon: BookOpen, label: "Learning Materials", href: "/learning" },
   { icon: Users, label: "Community", href: "/community" },
   { icon: HelpCircle, label: "Support", href: "/support" },
+];
+
+const adminNavItems = [
+  { icon: Shield, label: "Admin Portal", href: "/admin" },
 ];
 
 export function Sidebar() {
@@ -76,37 +81,10 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {/* Main Navigation */}
-          <div className="space-y-1">
-            {mainNavItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link key={item.href} to={item.href}>
-                  <motion.div
-                    whileHover={{ x: 2 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </motion.div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Resources Section */}
-          <div className="pt-6">
-            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Resources
-            </p>
+          {/* Main Navigation - Hide for admin users */}
+          {!user?.is_admin && (
             <div className="space-y-1">
-              {resourceNavItems.map((item) => {
+              {mainNavItems.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link key={item.href} to={item.href}>
@@ -127,7 +105,69 @@ export function Sidebar() {
                 );
               })}
             </div>
-          </div>
+          )}
+
+          {/* Resources Section - Hide for admin users */}
+          {!user?.is_admin && (
+            <div className="pt-6">
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Resources
+              </p>
+              <div className="space-y-1">
+                {resourceNavItems.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link key={item.href} to={item.href}>
+                      <motion.div
+                        whileHover={{ x: 2 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </motion.div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Admin Section - Only visible for admin users */}
+          {user?.is_admin && (
+            <div className="pt-6">
+              <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Admin
+              </p>
+              <div className="space-y-1">
+                {adminNavItems.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link key={item.href} to={item.href}>
+                      <motion.div
+                        whileHover={{ x: 2 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </motion.div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* User Section */}

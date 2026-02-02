@@ -8,6 +8,7 @@ interface User {
   full_name: string;
   role: string;
   is_active: boolean;
+  is_admin: boolean;
   hasCompletedOnboarding: boolean;
 }
 

@@ -24,7 +24,7 @@ class QuizQuestionUpdate(BaseModel):
 class QuizQuestionResponse(QuizQuestionBase):
     id: int
     is_active: bool
-    created_at: datetime
+    created_at: Optional[datetime] = None
     
     class Config:
         from_attributes = True

@@ -3,6 +3,7 @@ from app.models.user import User
 from app.models.onboarding import OnboardingData
 from app.models.quiz import QuizQuestion, QuizAnswer, QuizSubmission
 from app.models.career import CareerRecommendation, SkillGap, LearningRoadmap
+from app.models.learning import LearningMaterial
 
 __all__ = [
     "Base",
@@ -14,4 +15,5 @@ __all__ = [
     "CareerRecommendation",
     "SkillGap",
     "LearningRoadmap",
+    "LearningMaterial",
 ]

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Search,
   Play,
@@ -15,105 +16,89 @@ import {
   Brain,
   Smartphone,
   Shield,
+  ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import api from "@/lib/axios";
+import { toast } from "sonner";
+
+interface LearningMaterial {
+  id: number;
+  title: string;
+  description: string | null;
+  url: string;
+  category: string | null;
+  field_of_study: string | null;
+  resource_type: string | null;
+  provider: string | null;
+  level: string | null;
+  duration: string | null;
+  is_free: boolean;
+  tags: string[] | null;
+}
 
 const categories = [
   { id: "all", label: "All", icon: BookOpen },
-  { id: "web", label: "Web Dev", icon: Code },
-  { id: "mobile", label: "Mobile", icon: Smartphone },
-  { id: "ai", label: "AI/ML", icon: Brain },
-  { id: "cloud", label: "Cloud", icon: Cloud },
-  { id: "database", label: "Database", icon: Database },
-  { id: "security", label: "Security", icon: Shield },
-];
-
-const courses = [
-  {
-    id: 1,
-    title: "Advanced React Patterns",
-    description: "Master compound components, render props, and custom hooks",
-    instructor: "Sarah Chen",
-    duration: "8 hours",
-    rating: 4.9,
-    students: 12500,
-    category: "web",
-    level: "Advanced",
-    gradient: "from-primary to-primary/70",
-    progress: 35,
-  },
-  {
-    id: 2,
-    title: "Node.js Backend Mastery",
-    description: "Build scalable REST APIs with Express and MongoDB",
-    instructor: "John Smith",
-    duration: "12 hours",
-    rating: 4.8,
-    students: 9800,
-    category: "web",
-    level: "Intermediate",
-    gradient: "from-success to-success/70",
-    progress: 0,
-  },
-  {
-    id: 3,
-    title: "Machine Learning Fundamentals",
-    description: "Learn ML algorithms and implement them with Python",
-    instructor: "Dr. Emily Zhang",
-    duration: "15 hours",
-    rating: 4.9,
-    students: 15200,
-    category: "ai",
-    level: "Beginner",
-    gradient: "from-accent to-accent/70",
-    progress: 0,
-  },
-  {
-    id: 4,
-    title: "AWS Cloud Practitioner",
-    description: "Prepare for the AWS certification exam",
-    instructor: "Mike Johnson",
-    duration: "10 hours",
-    rating: 4.7,
-    students: 8500,
-    category: "cloud",
-    level: "Beginner",
-    gradient: "from-warning to-warning/70",
-    progress: 0,
-  },
-  {
-    id: 5,
-    title: "React Native Development",
-    description: "Build cross-platform mobile apps with React Native",
-    instructor: "Lisa Park",
-    duration: "14 hours",
-    rating: 4.8,
-    students: 7200,
-    category: "mobile",
-    level: "Intermediate",
-    gradient: "from-chart-5 to-chart-5/70",
-    progress: 0,
-  },
-  {
-    id: 6,
-    title: "SQL Database Design",
-    description: "Design efficient database schemas and write complex queries",
-    instructor: "David Brown",
-    duration: "6 hours",
-    rating: 4.6,
-    students: 5600,
-    category: "database",
-    level: "Intermediate",
-    gradient: "from-muted-foreground to-muted-foreground/70",
-    progress: 100,
-  },
+  { id: "Programming", label: "Programming", icon: Code },
+  { id: "Mobile", label: "Mobile", icon: Smartphone },
+  { id: "AI/ML", label: "AI/ML", icon: Brain },
+  { id: "Cloud", label: "Cloud", icon: Cloud },
+  { id: "Database", label: "Database", icon: Database },
+  { id: "Security", label: "Security", icon: Shield },
 ];
 
 const Learning = () => {
+  const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  useEffect(() => {
+    loadMaterials();
+  }, []);
+
+  const loadMaterials = async () => {
+    setIsLoading(true);
+    try {
+      const { data } = await api.get("/admin/public/learning-materials");
+      setMaterials(data);
+    } catch (error: any) {
+      console.error("Error loading materials:", error);
+      toast.error("Failed to load learning materials");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredMaterials = materials.filter((material) => {
+    const matchesSearch = 
+      material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      material.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = 
+      selectedCategory === "all" || 
+      material.category === selectedCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const getCategoryGradient = (category: string | null) => {
+    switch (category) {
+      case "Programming": return "from-primary to-primary/70";
+      case "AI/ML": return "from-accent to-accent/70";
+      case "Cloud": return "from-warning to-warning/70";
+      case "Mobile": return "from-chart-5 to-chart-5/70";
+      case "Database": return "from-muted-foreground to-muted-foreground/70";
+      case "Security": return "from-destructive to-destructive/70";
+      default: return "from-success to-success/70";
+    }
+  };
   return (
     <DashboardLayout
       title="Learning Materials"
-      subtitle="Curated courses to boost your skills"
+      subtitle="Curated courses and resources to boost your skills"
     >
       {/* Search and Filter */}
       <motion.div
@@ -125,13 +110,15 @@ const Learning = () => {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search courses..."
+            placeholder="Search learning materials..."
             className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          Filters
+        <Button variant="outline" onClick={loadMaterials}>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh
         </Button>
       </motion.div>
 
@@ -145,9 +132,10 @@ const Learning = () => {
         {categories.map((category) => (
           <button
             key={category.id}
+            onClick={() => setSelectedCategory(category.id)}
             className={cn(
               "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap",
-              category.id === "all"
+              selectedCategory === category.id
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
             )}
@@ -158,86 +146,103 @@ const Learning = () => {
         ))}
       </motion.div>
 
-      {/* Course Grid */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {courses.map((course, index) => (
-          <motion.div
-            key={course.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
-            className="group rounded-xl border border-border bg-card overflow-hidden card-shadow hover:card-shadow-lg transition-shadow"
-          >
-            {/* Thumbnail */}
-            <div
-              className={cn(
-                "relative h-36 bg-gradient-to-br flex items-center justify-center",
-                course.gradient
-              )}
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : filteredMaterials.length === 0 ? (
+        <div className="text-center py-12">
+          <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">No materials found</h3>
+          <p className="text-muted-foreground">
+            {searchTerm 
+              ? "Try adjusting your search terms" 
+              : "No learning materials available yet. Check back later!"}
+          </p>
+        </div>
+      ) : (
+        /* Materials Grid */
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {filteredMaterials.map((material, index) => (
+            <motion.div
+              key={material.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + index * 0.05 }}
+              className="group rounded-xl border border-border bg-card overflow-hidden card-shadow hover:card-shadow-lg transition-shadow"
             >
-              <BookOpen className="h-12 w-12 text-white/80" />
-              {course.progress > 0 && course.progress < 100 && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                  <div
-                    className="h-full bg-white"
-                    style={{ width: `${course.progress}%` }}
-                  />
-                </div>
-              )}
-              {course.progress === 100 && (
-                <div className="absolute top-3 right-3 rounded-full bg-success px-2 py-0.5 text-xs font-medium text-success-foreground">
-                  Completed
-                </div>
-              )}
-              <button className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Play className="h-5 w-5 text-foreground ml-0.5" />
-                </div>
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
-                  {course.level}
-                </span>
-                <span className="flex items-center gap-1 text-xs text-warning">
-                  <Star className="h-3 w-3 fill-current" />
-                  {course.rating}
-                </span>
-              </div>
-
-              <h3 className="mb-1 font-semibold text-foreground line-clamp-1">
-                {course.title}
-              </h3>
-              <p className="mb-3 text-sm text-muted-foreground line-clamp-2">
-                {course.description}
-              </p>
-
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{course.instructor}</span>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {course.duration}
-                </div>
-              </div>
-
-              <Button
-                variant={course.progress > 0 ? "default" : "outline"}
-                className="mt-4 w-full"
-                size="sm"
+              {/* Thumbnail */}
+              <div
+                className={cn(
+                  "relative h-36 bg-gradient-to-br flex items-center justify-center",
+                  getCategoryGradient(material.category)
+                )}
               >
-                {course.progress === 100
-                  ? "Review Course"
-                  : course.progress > 0
-                  ? "Continue Learning"
-                  : "Start Course"}
-              </Button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+                <BookOpen className="h-12 w-12 text-white/80" />
+                {material.is_free && (
+                  <div className="absolute top-3 right-3 rounded-full bg-success px-2 py-0.5 text-xs font-medium text-success-foreground">
+                    Free
+                  </div>
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="p-4">
+                <div className="mb-2 flex items-center gap-2 flex-wrap">
+                  {material.level && (
+                    <Badge variant="secondary" className="text-xs">
+                      {material.level}
+                    </Badge>
+                  )}
+                  {material.resource_type && (
+                    <Badge variant="outline" className="text-xs">
+                      {material.resource_type}
+                    </Badge>
+                  )}
+                </div>
+
+                <h3 className="mb-1 font-semibold text-foreground line-clamp-1">
+                  {material.title}
+                </h3>
+                <p className="mb-3 text-sm text-muted-foreground line-clamp-2">
+                  {material.description || "No description available"}
+                </p>
+
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                  <span>{material.provider || "Unknown"}</span>
+                  {material.duration && (
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {material.duration}
+                    </div>
+                  )}
+                </div>
+
+                {material.tags && material.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {material.tags.slice(0, 3).map((tag, idx) => (
+                      <Badge key={idx} variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                <Button
+                  variant="default"
+                  className="w-full"
+                  size="sm"
+                  onClick={() => window.open(material.url, '_blank')}
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View Material
+                </Button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </DashboardLayout>
   );
 };

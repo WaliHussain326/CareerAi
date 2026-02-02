@@ -217,7 +217,7 @@ const CareerDetail = () => {
               </div>
             </motion.div>
 
-            {(career.salary_range || career.work_environment) && (
+            {career.work_environment && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -226,16 +226,11 @@ const CareerDetail = () => {
               >
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Briefcase className="h-5 w-5 text-primary" />
-                  Role Details
+                  Work Environment
                 </h3>
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  {career.salary_range && (
-                    <p><span className="font-medium text-foreground">Salary Range:</span> {career.salary_range}</p>
-                  )}
-                  {career.work_environment && (
-                    <p><span className="font-medium text-foreground">Work Environment:</span> {career.work_environment}</p>
-                  )}
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  {career.work_environment}
+                </p>
               </motion.div>
             )}
           </TabsContent>

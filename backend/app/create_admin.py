@@ -46,16 +46,66 @@ def create_admin_user(email: str, password: str, full_name: str = "Admin User"):
     finally:
         db.close()
 
+def make_user_admin(email: str):
+    """Make an existing user an admin"""
+    db = SessionLocal()
+    
+    try:
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            print(f"❌ User with email {email} not found!")
+            return
+        
+        if user.role == "admin":
+            print(f"User {email} is already an admin!")
+            return
+        
+        user.role = "admin"
+        db.commit()
+        
+        print(f"✅ User {email} is now an admin!")
+        
+    except Exception as e:
+        print(f"❌ Error updating user: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
 if __name__ == "__main__":
     import sys
     
-    if len(sys.argv) < 3:
-        print("Usage: python -m app.create_admin <email> <password> [full_name]")
-        print("Example: python -m app.create_admin admin@example.com SecurePass123 'Admin User'")
+    if len(sys.argv) < 2:
+        print("Usage:")
+        print("  Create new admin: python -m app.create_admin create <email> <password> [full_name]")
+        print("  Make user admin:  python -m app.create_admin promote <email>")
+        print("")
+        print("Examples:")
+        print("  python -m app.create_admin create admin@example.com SecurePass123 'Admin User'")
+        print("  python -m app.create_admin promote user@example.com")
         sys.exit(1)
     
-    email = sys.argv[1]
-    password = sys.argv[2]
-    full_name = sys.argv[3] if len(sys.argv) > 3 else "Admin User"
+    command = sys.argv[1]
     
-    create_admin_user(email, password, full_name)
+    if command == "create":
+        if len(sys.argv) < 4:
+            print("Usage: python -m app.create_admin create <email> <password> [full_name]")
+            sys.exit(1)
+        email = sys.argv[2]
+        password = sys.argv[3]
+        full_name = sys.argv[4] if len(sys.argv) > 4 else "Admin User"
+        create_admin_user(email, password, full_name)
+    elif command == "promote":
+        if len(sys.argv) < 3:
+            print("Usage: python -m app.create_admin promote <email>")
+            sys.exit(1)
+        email = sys.argv[2]
+        make_user_admin(email)
+    else:
+        # Legacy support - treat as create with email, password
+        email = command
+        password = sys.argv[2] if len(sys.argv) > 2 else None
+        if not password:
+            print("Usage: python -m app.create_admin <email> <password> [full_name]")
+            sys.exit(1)
+        full_name = sys.argv[3] if len(sys.argv) > 3 else "Admin User"
+        create_admin_user(email, password, full_name)
