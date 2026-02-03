@@ -1,6 +1,7 @@
 import { Search, Bell, User, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
@@ -19,12 +21,18 @@ interface HeaderProps {
 
 export function Header({ title, subtitle }: HeaderProps) {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
     navigate("/login");
   };
+
+  const handleThemeChange = (checked: boolean) => {
+    setTheme(checked ? "dark" : "light");
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
       <div>
@@ -41,6 +49,16 @@ export function Header({ title, subtitle }: HeaderProps) {
             placeholder="Search..."
             className="w-64 pl-9 bg-muted/50 border-0 focus-visible:ring-1"
           />
+        </div>
+
+        {/* Theme Toggle */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground hidden sm:inline">Light</span>
+          <Switch
+            checked={theme === "dark"}
+            onCheckedChange={handleThemeChange}
+          />
+          <span className="text-sm text-muted-foreground hidden sm:inline">Dark</span>
         </div>
 
         {/* Notifications */}

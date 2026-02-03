@@ -46,9 +46,7 @@ const Signup = () => {
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-center gap-3 mb-8">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur">
-                <Brain className="h-7 w-7" />
-              </div>
+              <img src="/logowhite.png" alt="NextStepAi" className="h-16 w-16 rounded-xl object-cover" />
               <span className="text-2xl font-bold">NextStepAi</span>
             </div>
 
@@ -91,9 +89,7 @@ const Signup = () => {
         >
           {/* Mobile Logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg gradient-primary">
-              <Brain className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src="/logowhite.png" alt="NextStepAi" className="h-12 w-12 rounded-lg object-cover" />
             <span className="text-xl font-bold text-foreground">NextStepAi</span>
           </div>
 

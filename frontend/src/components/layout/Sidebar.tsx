@@ -73,9 +73,7 @@ export function Sidebar() {
       <div className="flex h-full flex-col">
         {/* Logo */}
         <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
-            <Brain className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src="/logo.jpeg" alt="NextStepAi" className="h-9 w-9 rounded-lg object-cover" />
           <span className="text-lg font-bold text-foreground">NextStepAi</span>
         </div>
 
